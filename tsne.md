@@ -11,7 +11,7 @@ This formula converts the Euclidean distances between high-dimensional points in
 For points $x_i$ and $x_j$:
 
 $$
-P_{j|i} = \frac{\exp\left( -\|x_i - x_j\|^2 / 2\sigma_i^2 \right)}{\sum_{k \neq i} \exp\left( -\|x_i - x_k\|^2 / 2\sigma_i^2 \right)}
+P_{j|i} = \frac{ \exp( -\|x_i - x_j\|^2 / 2\sigma_i^2 ) }{ \sum_{k \neq i} \exp( -\|x_i - x_k\|^2 / 2\sigma_i^2 ) }
 $$
 
 To make the matrix symmetric (since similarity should be mutual), we symmetrize it:
@@ -34,7 +34,7 @@ $$
 This formula converts the Euclidean distances between the current low-dimensional map points into probabilities using a **Student-t distribution** (which has heavy tails).
 
 $$
-Q_{ij} = \frac{\left(1 + \|z_i - z_j\|^2\right)^{-1}}{\sum_{k \neq l} \left(1 + \|z_k - z_l\|^2\right)^{-1}}
+Q_{ij} = \frac{ (1 + \|z_i - z_j\|^2)^{-1} }{ \sum_{k \neq l} (1 + \|z_k - z_l\|^2)^{-1} }
 $$
 
 **How it is used**:
@@ -70,7 +70,7 @@ To minimize the loss, the AI must move the low-dimensional points $Z$. The gradi
 
 $$
 \boxed{
-\frac{\partial \mathcal{L}}{\partial z_i} = 4 \sum_{j \neq i} (P_{ij} - Q_{ij}) \cdot (z_i - z_j) \cdot \left(1 + \|z_i - z_j\|^2\right)^{-1}
+\frac{\partial \mathcal{L}}{\partial z_i} = 4 \sum_{j \neq i} (P_{ij} - Q_{ij}) \cdot (z_i - z_j) \cdot (1 + \|z_i - z_j\|^2)^{-1}
 }
 $$
 
@@ -122,15 +122,13 @@ Here is exactly how an AI uses these 5 formulas to learn the perfect 2D map:
 
 | Name | Formula | When is it calculated? | What does it do? |
 | :--- | :--- | :--- | :--- |
-| **High-D Similarities** | $P_{ij} = \frac{\exp(-\|x_i - x_j\|^2 / 2\sigma_i^2)}{\sum_{k \neq l} \exp(-\|x_k - x_l\|^2 / 2\sigma_i^2)}$ | **Once** (before training) | Establishes the target "ground truth" relationships. |
-| **Low-D Similarities** | $Q_{ij} = \frac{(1 + \|z_i - z_j\|^2)^{-1}}{\sum_{k \neq l} (1 + \|z_k - z_l\|^2)^{-1}}$ | **Every iteration** | Measures the current relationships in the AI's map. |
-| **Loss Function** | $\mathcal{L} = \sum_{i \neq j} P_{ij} \log(\frac{P_{ij}}{Q_{ij}})$ | **Every iteration** | Quantifies how badly the AI's map is doing. |
+| **High-D Similarities** | $P_{ij} = \frac{ \exp(-\|x_i - x_j\|^2 / 2\sigma_i^2) }{ \sum_{k \neq l} \exp(-\|x_k - x_l\|^2 / 2\sigma_i^2) }$ | **Once** (before training) | Establishes the target "ground truth" relationships. |
+| **Low-D Similarities** | $Q_{ij} = \frac{ (1 + \|z_i - z_j\|^2)^{-1} }{ \sum_{k \neq l} (1 + \|z_k - z_l\|^2)^{-1} }$ | **Every iteration** | Measures the current relationships in the AI's map. |
+| **Loss Function** | $\mathcal{L} = \sum_{i \neq j} P_{ij} \log( \frac{P_{ij}}{Q_{ij}} )$ | **Every iteration** | Quantifies how badly the AI's map is doing. |
 | **Gradient** | $\frac{\partial \mathcal{L}}{\partial z_i} = 4 \sum_{j \neq i} (P_{ij} - Q_{ij})(z_i - z_j)(1 + \|z_i - z_j\|^2)^{-1}$ | **Every iteration** | Tells the AI exactly *which direction* to move each point. |
 | **Update Rule (SGD)** | $z_i^{new} = z_i^{old} - \eta \cdot \frac{\partial \mathcal{L}}{\partial z_i}$ | **Every iteration** | Physically moves the points to reduce the loss. |
 
-
-
-
+---
 
 # t-SNE from Scratch: A Complete Walkthrough with 3 Data Points Example 
 
@@ -168,7 +166,7 @@ We will compute:
 We use the formula:
 
 $$
-P_{ij} = \frac{\exp\left(-\|x_i - x_j\|^2 / 2\right)}{\sum_{k<l} \exp\left(-\|x_k - x_l\|^2 / 2\right)}
+P_{ij} = \frac{ \exp(-\|x_i - x_j\|^2 / 2) }{ \sum_{k<l} \exp(-\|x_k - x_l\|^2 / 2) }
 $$
 
 *(Note: We only calculate for $i < j$ so the probabilities sum to 1).*
@@ -208,7 +206,7 @@ $$
 We use the t-SNE formula with a Student-t distribution:
 
 $$
-Q_{ij} = \frac{(1 + \|z_i - z_j\|^2)^{-1}}{\sum_{k<l} (1 + \|z_k - z_l\|^2)^{-1}}
+Q_{ij} = \frac{ (1 + \|z_i - z_j\|^2)^{-1} }{ \sum_{k<l} (1 + \|z_k - z_l\|^2)^{-1} }
 $$
 
 ### Squared Distances in Low-D:
@@ -246,7 +244,7 @@ $$
 We use the KL Divergence:
 
 $$
-\mathcal{L} = \sum_{i<j} P_{ij} \log\left(\frac{P_{ij}}{Q_{ij}}\right)
+\mathcal{L} = \sum_{i<j} P_{ij} \log\left( \frac{P_{ij}}{Q_{ij}} \right)
 $$
 
 ### Per-Pair Calculations:
@@ -424,6 +422,3 @@ with torch.no_grad():
 
 # Zero out gradients for next step
 Z.grad.zero_()
-
-
-
